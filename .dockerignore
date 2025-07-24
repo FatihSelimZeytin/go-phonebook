@@ -1,0 +1,8 @@
+# Do not copy these into image
+.git
+*.md
+*.log
+Dockerfile
+docker-compose.yml
+.idea
+.vscode
