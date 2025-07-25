@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"go-phonebook/utilities"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -52,11 +53,7 @@ func RegisterUser(db *gorm.DB) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Could not create user"})
 		}
 
-		// Return created user (no password)
-		return c.JSON(http.StatusCreated, echo.Map{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-		})
+		return utilities.SendCreatedUserResponse(c, user.ID, user.Username, user.Email)
+
 	}
 }
