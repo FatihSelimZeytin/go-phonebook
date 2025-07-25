@@ -16,7 +16,6 @@ func (h *Handler) CreateContact(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data"})
 	}
 
-	// Required field checks (optional, you can enforce this on model level too)
 	if contact.FirstName == "" || contact.Surname == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "First name and surname are required"})
 	}
