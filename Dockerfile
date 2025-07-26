@@ -1,5 +1,5 @@
 # Stage 1: Build the Go app
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 
 # Install git if needed
 #RUN apk add --no-cache git

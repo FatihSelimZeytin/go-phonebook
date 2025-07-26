@@ -7,7 +7,7 @@ services:
       - .env
     container_name: go_phonebook
     ports:
-      - "8099:8080"
+      - "8090:8080"
     depends_on:
       - db
     environment:

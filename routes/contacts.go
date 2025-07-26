@@ -9,6 +9,11 @@ type Handler struct {
 	DB *gorm.DB
 }
 
+// RegisterRoutes godoc
+// @Summary      Register contact routes
+// @Description  Register CRUD routes for contacts: create, list, update, delete, search
+// @Tags         contacts
+// @Security     ApiKeyAuth
 func (h *Handler) RegisterRoutes(e *echo.Group) {
 	e.POST("/", h.CreateContact)
 	e.GET("/", h.ListContacts)

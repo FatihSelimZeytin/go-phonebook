@@ -1,0 +1,325 @@
+basePath: /
+definitions:
+  handlers.CreateContactInput:
+    properties:
+      firstName:
+        example: John
+        minLength: 2
+        type: string
+      phone:
+        example: "+1234567890"
+        type: string
+      surname:
+        example: Doe
+        minLength: 2
+        type: string
+    required:
+    - firstName
+    - phone
+    - surname
+    type: object
+  models.Contact:
+    properties:
+      company:
+        description: Nullable
+        type: string
+      createdAt:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      phones:
+        items:
+          $ref: '#/definitions/models.Phone'
+        type: array
+      status:
+        type: boolean
+      surname:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.Phone:
+    properties:
+      contactId:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: integer
+      number:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  routes.CreateContactInput:
+    properties:
+      firstName:
+        example: John
+        type: string
+      phones:
+        items:
+          $ref: '#/definitions/routes.PhoneInput'
+        type: array
+      surname:
+        example: Doe
+        type: string
+    type: object
+  routes.PhoneInput:
+    properties:
+      number:
+        example: "123456789"
+        type: string
+    type: object
+  routes.RegisterRequest:
+    properties:
+      email:
+        type: string
+      plainPassword:
+        type: string
+      username:
+        type: string
+    type: object
+  utilities.BadRequestResponse:
+    properties:
+      error:
+        example: Bad Request
+        type: string
+    type: object
+  utilities.DatabaseErrorResponse:
+    properties:
+      error:
+        example: Database error
+        type: string
+    type: object
+  utilities.InvalidContactIDResponse:
+    properties:
+      error:
+        example: Invalid contact ID
+        type: string
+    type: object
+  utilities.MessageResponse:
+    properties:
+      message:
+        example: Contact deleted
+        type: string
+    type: object
+  utilities.NotFoundResponse:
+    properties:
+      error:
+        example: Contact not found
+        type: string
+    type: object
+  utilities.UnauthorizedResponse:
+    properties:
+      error:
+        example: Unauthorized
+        type: string
+    type: object
+host: localhost:8099
+info:
+  contact: {}
+  description: This is the API server for the Go Phonebook app.
+  title: Go Phonebook API
+  version: "1.0"
+paths:
+  /contacts:
+    get:
+      description: Get all contacts with status=true for the authenticated user, including
+        phone numbers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Contact'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List all active contacts
+      tags:
+      - contacts
+    post:
+      consumes:
+      - application/json
+      description: Creates a new contact with phones for the authenticated user
+      parameters:
+      - description: Contact data
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/routes.CreateContactInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Contact'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilities.BadRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new contact
+      tags:
+      - contacts
+  /contacts/{id}:
+    delete:
+      description: Delete a contact by ID for the authenticated user
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utilities.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utilities.InvalidContactIDResponse'
+        "402":
+          description: Payment Required
+          schema:
+            $ref: '#/definitions/utilities.UnauthorizedResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utilities.NotFoundResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a contact
+      tags:
+      - contacts
+    put:
+      description: Update contact details including phones for the authenticated user
+      parameters:
+      - description: Contact ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Contact data to update
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/models.Contact'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contact'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilities.BadRequestResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utilities.NotFoundResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a contact
+      tags:
+      - contacts
+  /contacts/search:
+    get:
+      description: Search user's contacts by first name, surname, company, or phone
+        number (case-insensitive, partial match)
+      parameters:
+      - description: Search query string
+        in: query
+        name: q
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Contact'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilities.BadRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Search contacts
+      tags:
+      - contacts
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a user with username, email and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/routes.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

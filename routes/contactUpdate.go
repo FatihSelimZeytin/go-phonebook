@@ -9,6 +9,18 @@ import (
 	"go-phonebook/models"
 )
 
+// UpdateContact godoc
+// @Summary      Update a contact
+// @Description  Update contact details including phones for the authenticated user
+// @Tags         contacts
+// @Security     ApiKeyAuth
+// @Param        id     path      int            true  "Contact ID"
+// @Param        contact  body     models.Contact true  "Contact data to update"
+// @Success      200	  {object}  models.Contact
+// @Failure 	 400	  {object} utilities.BadRequestResponse
+// @Failure		 404	  {object} utilities.NotFoundResponse
+// @Failure		 500	  {object} utilities.DatabaseErrorResponse
+// @Router       /contacts/{id} [put]
 func (h *Handler) UpdateContact(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 

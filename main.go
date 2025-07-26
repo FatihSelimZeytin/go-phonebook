@@ -6,12 +6,23 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go-phonebook/config"
 	"go-phonebook/dbsql"
+	_ "go-phonebook/docs"
 	"go-phonebook/handlers"
 	"go-phonebook/middleware"
 )
 
+// @title Go Phonebook API
+// @version 1.0
+// @description This is the API server for the Go Phonebook app.
+// @host localhost:8099
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	// Load env vars
 	if err := godotenv.Load(); err != nil {
@@ -40,8 +51,9 @@ func main() {
 	contactHandler := handlers.NewContactHandler(db)
 	contactHandler.RegisterRoutes(api)
 
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	// Start server
-	if err := e.Start(":8080"); err != nil {
+	if err := e.Start(":8091"); err != nil {
 		slog.Error("Server failed", "error", err)
 	}
 }

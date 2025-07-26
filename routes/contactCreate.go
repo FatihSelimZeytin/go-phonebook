@@ -8,6 +8,28 @@ import (
 	"go-phonebook/models"
 )
 
+type PhoneInput struct {
+	Number string `json:"number" example:"123456789"`
+}
+
+type CreateContactInput struct {
+	FirstName string       `json:"firstName" example:"John"`
+	Surname   string       `json:"surname" example:"Doe"`
+	Phones    []PhoneInput `json:"phones"`
+}
+
+// CreateContact godoc
+// @Summary      Create a new contact
+// @Description  Creates a new contact with phones for the authenticated user
+// @Tags         contacts
+// @Accept       json
+// @Produce      json
+// @Param        contact  body      CreateContactInput  true  "Contact data"
+// @Success      201      {object}  models.Contact
+// @Failure 	 400	  {object} utilities.BadRequestResponse
+// @Failure		 500	  {object} utilities.DatabaseErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /contacts [post]
 func (h *Handler) CreateContact(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 
