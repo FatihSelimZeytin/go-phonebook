@@ -18,27 +18,6 @@ Powered by:
 
 ---
 
-## Intro
-
-### 1. Cross Platform
-
-The Go Phonebook API runs on:
-
-- Linux
-- macOS
-- Windows
-
----
-
-### 2. Memory + Disk Requirements
-
-Requires Go ≥ 1.18 and MySQL or SQLite.
-
-- RAM: 100MB+
-- Disk: ~15MB for binary, plus DB storage
-
----
-
 ## Quickstart
 
 ### Docker Compose
@@ -67,7 +46,7 @@ Swagger UI will be available at: http://localhost:8080/swagger/index.html
 2. Clone & Build
 
 ```bash
-git clone https://github.com/yourusername/go-phonebook
+git clone https://github.com/fatihselimzeytin/go-phonebook
 cd go-phonebook
 go mod tidy
 go run main.go
