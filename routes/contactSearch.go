@@ -9,6 +9,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// SearchContacts godoc
+// @Summary      Search contacts
+// @Description  Search user's contacts by first name, surname, company, or phone number (case-insensitive, partial match)
+// @Tags         contacts
+// @Security     ApiKeyAuth
+// @Param        q   query     string  true  "Search query string"
+// @Success      200 {array}   models.Contact
+// @Failure 	 400	  {object} utilities.BadRequestResponse
+// @Failure		 500	  {object} utilities.DatabaseErrorResponse
+// @Router       /contacts/search [get]
 func (h *Handler) SearchContacts(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 	q := c.QueryParam("q")

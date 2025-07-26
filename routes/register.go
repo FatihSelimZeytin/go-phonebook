@@ -22,6 +22,17 @@ type User struct {
 	PasswordHash string `gorm:"not null"`
 }
 
+// RegisterUser godoc
+// @Summary      Register a new user
+// @Description  Registers a user with username, email and password
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      RegisterRequest  true  "User registration data"
+// @Success      201   {object}  map[string]interface{}  "User created response"
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /users/register [post]
 func RegisterUser(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req RegisterRequest

@@ -3,29 +3,33 @@ version: '3.8'
 services:
   app:
     build: .
+    env_file:
+      - .env
     container_name: go_phonebook
     ports:
-      - "8099:8099"
+      - "8090:8080"
     depends_on:
       - db
     environment:
       DB_USER: root
-      DB_PASS: rootpass 
+      DB_PASS: rootpass
       DB_HOST: db
-      DB_PORT: 3309
+      DB_PORT: 3306
       DB_NAME: contactsdb
     networks:
       - appnet
 
   db:
     image: mysql:8
+    env_file:
+      - .env
     container_name: mysql_db
     restart: on-failure:3
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: contactsdb
     ports:
-      - "3309:3309"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:

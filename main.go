@@ -1,65 +1,59 @@
 package main
 
 import (
-	"errors"
-	"fmt"
+	"log/slog"
+	"net/http"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
+	"go-phonebook/config"
+	"go-phonebook/dbsql"
+	_ "go-phonebook/docs"
 	"go-phonebook/handlers"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"log/slog"
-	"net/http"
-	"os"
+	"go-phonebook/middleware"
 )
 
+// @title Go Phonebook API
+// @version 1.0
+// @description This is the API server for the Go Phonebook app.
+// @host localhost:8099
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
-	// Load environment variables
+	// Load env vars
 	if err := godotenv.Load(); err != nil {
 		slog.Warn("No .env file found, using environment variables")
 	}
 
-	// Build DSN
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-	)
-
-	// Connect to DB
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// Initialize DB
+	db, err := dbsql.ConnectDB()
 	if err != nil {
 		slog.Error("Failed to connect to DB", "error", err)
 		return
 	}
 
-	// Echo instance
-	e := echo.New()
+	// Setup Echo
+	e := config.NewEchoApp()
 
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// Root route
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World! Test")
+	})
 
-	// Routes
-	e.GET("/", hello)
+	// JWT Protected Group
+	api := e.Group("/contacts")
+	api.Use(middleware.JWTMiddleware)
 
-	// Register contact routes
 	contactHandler := handlers.NewContactHandler(db)
-	contactGroup := e.Group("/contacts")
-	contactHandler.RegisterRoutes(contactGroup)
+	contactHandler.RegisterRoutes(api)
 
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	// Start server
-	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed to start server", "error", err)
+	if err := e.Start(":8091"); err != nil {
+		slog.Error("Server failed", "error", err)
 	}
-
-}
-
-// Handler
-func hello(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
 }

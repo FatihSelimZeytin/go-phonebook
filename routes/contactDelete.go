@@ -10,6 +10,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// DeleteContact godoc
+// @Summary      Delete a contact
+// @Description  Delete a contact by ID for the authenticated user
+// @Tags         contacts
+// @Produce      json
+// @Param        id   path      int  true  "Contact ID"
+// @Success      200  	  {object} utilities.MessageResponse
+// @Failure 	 401	  {object} utilities.InvalidContactIDResponse
+// @Failure 	 402	  {object} utilities.UnauthorizedResponse
+// @Failure		 404	  {object} utilities.NotFoundResponse
+// @Failure		 500	  {object} utilities.DatabaseErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /contacts/{id} [delete]
 func (h *Handler) DeleteContact(c echo.Context) error {
 	// Parse contact ID from URL
 	contactID, err := strconv.Atoi(c.Param("id"))
@@ -33,8 +46,9 @@ func (h *Handler) DeleteContact(c echo.Context) error {
 	}
 
 	// Delete contact (also deletes phones if you have ON DELETE CASCADE set in DB or use manual deletion)
-	if err := h.DB.Delete(&contact).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to delete contact"})
+	contact.Status = false
+	if err := h.DB.Save(&contact).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to soft delete contact"})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Contact deleted"})
