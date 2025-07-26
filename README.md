@@ -54,8 +54,8 @@ go run main.go
 
 You can now visit:
 
-* Swagger UI: http://localhost:8080/swagger/index.html
-* API Root: http://localhost:8080/
+* Swagger UI: http://localhost:8090/swagger/index.html
+* API Root: http://localhost:8090/
 
 ---
 
@@ -91,7 +91,7 @@ To update docs:
 ```bash
 swag init
 ```
-Then view at: http://localhost:8080/swagger/index.html
+Then view at: http://localhost:8090/swagger/index.html
 
 
 ---
