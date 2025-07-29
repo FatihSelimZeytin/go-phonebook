@@ -29,9 +29,9 @@ type User struct {
 // @Accept       json
 // @Produce      json
 // @Param        user  body      RegisterRequest  true  "User registration data"
-// @Success      201   {object}  map[string]interface{}  "User created response"
-// @Failure      400   {object}  map[string]string
-// @Failure      500   {object}  map[string]string
+// @Success      201      {object}  map[string]interface{}  "User created response"
+// @Failure 	 400	  {object} utilities.BadRequestResponse
+// @Failure		 500	  {object} utilities.DatabaseErrorResponse
 // @Router       /users/register [post]
 func RegisterUser(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-phonebook/routes"
 	"log/slog"
 	"net/http"
 
@@ -50,6 +51,11 @@ func main() {
 
 	contactHandler := handlers.NewContactHandler(db)
 	contactHandler.RegisterRoutes(api)
+
+	authHandler := handlers.NewAuthHandler(db)
+	e.POST("/auth/login", authHandler.Login)
+
+	e.POST("/auth/login", routes.LoginUser(db))
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	// Start server
