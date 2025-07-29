@@ -29,15 +29,6 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-// @Summary     Login
-// @Description Authenticates user and returns JWT token
-// @Tags        auth
-// @Accept      json
-// @Produce     json
-// @Param       credentials body LoginRequest true "Email and Password"
-// @Success     200 {object} LoginResponse
-// @Failure     401 {object} echo.HTTPError
-// @Router      /auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {

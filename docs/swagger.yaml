@@ -68,6 +68,13 @@ definitions:
         example: Doe
         type: string
     type: object
+  routes.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
   routes.PhoneInput:
     properties:
       number:
@@ -126,6 +133,40 @@ info:
   title: Go Phonebook API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns JWT token
+      parameters:
+      - description: Email and Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/routes.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Contact'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utilities.BadRequestResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utilities.InvalidContactIDResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
+      summary: Login
+      tags:
+      - auth
   /contacts:
     get:
       description: Get all contacts with status=true for the authenticated user, including
@@ -305,15 +346,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utilities.BadRequestResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utilities.DatabaseErrorResponse'
       summary: Register a new user
       tags:
       - users
