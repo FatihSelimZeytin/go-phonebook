@@ -59,7 +59,7 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	// Start server
-	if err := e.Start(":8091"); err != nil {
+	if err := e.Start(":8080"); err != nil {
 		slog.Error("Server failed", "error", err)
 	}
 }

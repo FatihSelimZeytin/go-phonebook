@@ -16,6 +16,8 @@ RUN ls -all
 # Stage 2: Final tiny image
 FROM golang:1.22-alpine
 
+FROM scratch
+
 WORKDIR /app
 COPY --from=builder /app/go-phonebook .
 COPY .env .env
