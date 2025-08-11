@@ -17,7 +17,7 @@ type CreateContactInput struct {
 	FirstName string        `json:"firstName" validate:"required"`
 	Surname   string        `json:"surname" validate:"required"`
 	Company   string        `json:"company" validate:"required"`
-	Phones    []PhonesInput `json:"phones" validate:"required ,dive, "required"`
+	Phones    []PhonesInput `json:"phones" validate:"required,dive"`
 }
 
 // CreateContact godoc
