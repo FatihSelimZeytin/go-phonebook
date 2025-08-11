@@ -1,18 +1,19 @@
 package main
 
 import (
-	"go-phonebook/routes"
+	"go-phonebook/config"
+	_ "go-phonebook/routes"
 	"log/slog"
 	"net/http"
 
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
-	"go-phonebook/config"
 	"go-phonebook/dbsql"
 	_ "go-phonebook/docs"
 	"go-phonebook/handlers"
 	"go-phonebook/middleware"
+
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // @title Go Phonebook API
@@ -40,6 +41,13 @@ func main() {
 	// Setup Echo
 	e := config.NewEchoApp()
 
+	e.Use(middleware.CORS())
+
+	authHandler := handlers.NewAuthHandler(db)
+
+	e.POST("/auth/login", authHandler.Login)
+	e.POST("/auth/register", authHandler.Register)
+
 	// Root route
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World! Test")
@@ -51,11 +59,6 @@ func main() {
 
 	contactHandler := handlers.NewContactHandler(db)
 	contactHandler.RegisterRoutes(api)
-
-	authHandler := handlers.NewAuthHandler(db)
-	e.POST("/auth/login", authHandler.Login)
-
-	e.POST("/auth/login", routes.LoginUser(db))
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	// Start server

@@ -8,10 +8,10 @@ import (
 func NewEchoApp() *echo.Echo {
 	e := echo.New()
 
-	e.Validator = NewValidator()
-
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	e.Validator = NewValidator()
+	
 	return e
 }

@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
 	"go-phonebook/models"
+
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 

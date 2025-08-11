@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"go-phonebook/models"
+
 	"gorm.io/gorm"
 )
 

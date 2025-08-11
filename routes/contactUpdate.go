@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"go-phonebook/models"
+
+	"github.com/labstack/echo/v4"
 )
 
 // UpdateContact godoc
@@ -24,16 +25,20 @@ import (
 func (h *Handler) UpdateContact(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 
-	// Parse contact ID from route
+	var input CreateContactInput
+
 	idParam := c.Param("id")
 	contactID, err := strconv.ParseUint(idParam, 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid contact ID"})
 	}
 
-	var updatedData models.Contact
-	if err := c.Bind(&updatedData); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request data"})
+	if err := c.Bind(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data"})
+	}
+
+	if err := c.Validate(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	var contact models.Contact
@@ -41,23 +46,41 @@ func (h *Handler) UpdateContact(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Contact not found"})
 	}
 
-	// Update fields
-	contact.FirstName = updatedData.FirstName
-	contact.Surname = updatedData.Surname
-	contact.Company = updatedData.Company
+	contact.FirstName = input.FirstName
+	contact.Surname = input.Surname
+	contact.Company = input.Company
 	contact.UpdatedAt = time.Now()
 
-	if err := h.DB.Save(&contact).Error; err != nil {
+	tx := h.DB.Begin()
+
+	if err := tx.Save(&contact).Error; err != nil {
+		tx.Rollback()
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update contact"})
 	}
 
-	// Remove old phone numbers
-	h.DB.Where("contact_id = ?", contact.ID).Delete(&models.Phone{})
+	// Delete old phones
+	if err := tx.Where("contact_id = ?", contact.ID).Delete(&models.Phone{}).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to delete old phone numbers"})
+	}
 
-	// Add new phone numbers
-	for _, p := range updatedData.Phones {
-		p.ContactID = contact.ID
-		h.DB.Create(&p)
+	// Add new phones
+	for _, p := range input.Phones {
+		phone := models.Phone{
+			Number:    p.Number,
+			ContactID: contact.ID,
+		}
+		if err := tx.Create(&phone).Error; err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to add phone numbers"})
+		}
+	}
+
+	tx.Commit()
+
+	// Reload contact with phones
+	if err := h.DB.Preload("Phones").First(&contact, contact.ID).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to load updated contact"})
 	}
 
 	return c.JSON(http.StatusOK, contact)

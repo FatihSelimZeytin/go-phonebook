@@ -4,18 +4,20 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"go-phonebook/models"
+
+	"github.com/labstack/echo/v4"
 )
 
-type PhoneInput struct {
-	Number string `json:"number" example:"123456789"`
+type PhonesInput struct {
+	Number string `json:"number" validate:"required"`
 }
 
 type CreateContactInput struct {
-	FirstName string       `json:"firstName" example:"John"`
-	Surname   string       `json:"surname" example:"Doe"`
-	Phones    []PhoneInput `json:"phones"`
+	FirstName string        `json:"firstName" validate:"required"`
+	Surname   string        `json:"surname" validate:"required"`
+	Company   string        `json:"company" validate:"required"`
+	Phones    []PhonesInput `json:"phones" validate:"required ,dive, "required"`
 }
 
 // CreateContact godoc
@@ -33,35 +35,41 @@ type CreateContactInput struct {
 func (h *Handler) CreateContact(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 
-	var contact models.Contact
-	if err := c.Bind(&contact); err != nil {
+	var input CreateContactInput
+
+	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data"})
 	}
 
-	if contact.FirstName == "" || contact.Surname == "" {
+	if err := c.Validate(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	if input.FirstName == "" || input.Surname == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "First name and surname are required"})
 	}
 
-	// Set fields
-	contact.UserID = userID
-	contact.Status = true
-	contact.CreatedAt = time.Now()
-	contact.UpdatedAt = time.Now()
+	// Map input to your model.Contact
+	contact := models.Contact{
+		FirstName: input.FirstName,
+		Surname:   input.Surname,
+		Company:   input.Company,
+		UserID:    userID,
+		Status:    true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 
-	// Save the contact first to get the ID
+	// Map phones input to models.Phones slice
+	for _, p := range input.Phones {
+		contact.Phones = append(contact.Phones, models.Phone{
+			Number: p.Number,
+		})
+	}
+
+	// Save contact (this should save phones too if association is setups correctly)
 	if err := h.DB.Create(&contact).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create contact"})
-	}
-
-	// Assign contact ID to each phone and save
-	for i := range contact.Phones {
-		contact.Phones[i].ContactID = contact.ID
-	}
-
-	if len(contact.Phones) > 0 {
-		if err := h.DB.Create(&contact.Phones).Error; err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save phone numbers"})
-		}
 	}
 
 	return c.JSON(http.StatusCreated, contact)

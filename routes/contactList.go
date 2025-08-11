@@ -3,8 +3,9 @@ package routes
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"go-phonebook/models"
+
+	"github.com/labstack/echo/v4"
 )
 
 // ListContacts godoc
