@@ -19,7 +19,7 @@ import (
 // @title Go Phonebook API
 // @version 1.0
 // @description This is the API server for the Go Phonebook app.
-// @host localhost:8099
+// @host localhost:8080
 // @BasePath /
 
 // @securityDefinitions.apikey BearerAuth

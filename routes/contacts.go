@@ -15,8 +15,9 @@ type Handler struct {
 // @Tags         contacts
 // @Security     ApiKeyAuth
 func (h *Handler) RegisterRoutes(e *echo.Group) {
-	e.POST("/", h.CreateContact)
-	e.GET("/", h.ListContacts)
+	e.POST("", h.CreateContact)
+	e.GET("", h.ListContacts)
+	e.GET("/:id", h.GetContact)
 	e.PUT("/:id", h.UpdateContact)
 	e.DELETE("/:id", h.DeleteContact)
 	e.GET("/search", h.SearchContacts)
