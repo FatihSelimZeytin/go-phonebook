@@ -10,6 +10,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type UpdateContactInput struct {
+	FirstName string        `json:"firstName" validate:"required"`
+	Surname   string        `json:"surname" validate:"required"`
+	Company   string        `json:"company" validate:"required"`
+	Phones    []PhonesInput `json:"phones" validate:"required,dive"`
+}
+
 // UpdateContact godoc
 // @Summary      Update a contact
 // @Description  Update contact details including phones for the authenticated user
@@ -25,7 +32,7 @@ import (
 func (h *Handler) UpdateContact(c echo.Context) error {
 	userID := c.Get("userID").(uint)
 
-	var input CreateContactInput
+	var input UpdateContactInput
 
 	idParam := c.Param("id")
 	contactID, err := strconv.ParseUint(idParam, 10, 64)
