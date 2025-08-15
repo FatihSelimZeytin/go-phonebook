@@ -7,6 +7,7 @@ import (
 	"go-phonebook/models"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // SearchContacts godoc
@@ -30,17 +31,18 @@ func (h *Handler) SearchContacts(c echo.Context) error {
 	query := strings.ToLower(strings.TrimSpace(q))
 	queryParts := strings.Fields(query)
 
-	dbQuery := h.DB.Preload("Phones").
-		Where("user_id = ? AND status = ?", userID, true)
+	dbQuery := h.DB.Preload("Phones").Where("user_id = ? AND status = ?", userID, true)
 
-	// Build OR conditions for each part
-	for _, part := range queryParts {
-		like := "%" + part + "%"
-		dbQuery = dbQuery.Or(
-			"LOWER(first_name) LIKE ? OR LOWER(surname) LIKE ? OR LOWER(company) LIKE ? OR EXISTS (SELECT 1 FROM phones WHERE contact_id = contacts.id AND number LIKE ?)",
-			like, like, like, like,
-		)
-	}
+	dbQuery = dbQuery.Where(func(tx *gorm.DB) *gorm.DB {
+		for _, part := range queryParts {
+			like := "%" + part + "%"
+			tx = tx.Or(
+				"LOWER(first_name) LIKE ? OR LOWER(surname) LIKE ? OR LOWER(company) LIKE ? OR EXISTS (SELECT 1 FROM phones WHERE contact_id = contacts.id AND number LIKE ?)",
+				like, like, like, like,
+			)
+		}
+		return tx
+	})
 
 	var contacts []models.Contact
 	if err := dbQuery.Find(&contacts).Error; err != nil {
