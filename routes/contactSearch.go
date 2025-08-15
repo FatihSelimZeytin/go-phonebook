@@ -7,7 +7,6 @@ import (
 	"go-phonebook/models"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 // SearchContacts godoc
@@ -28,21 +27,28 @@ func (h *Handler) SearchContacts(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Search query is required"})
 	}
 
-	query := strings.ToLower(strings.TrimSpace(q))
-	queryParts := strings.Fields(query)
+	queryParts := strings.Fields(strings.ToLower(strings.TrimSpace(q)))
 
-	dbQuery := h.DB.Preload("Phones").Where("user_id = ? AND status = ?", userID, true)
+	// Start with the base query
+	dbQuery := h.DB.Preload("Phones").
+		Where("user_id = ? AND status = ?", userID, true)
 
-	dbQuery = dbQuery.Where(func(tx *gorm.DB) *gorm.DB {
-		for _, part := range queryParts {
-			like := "%" + part + "%"
-			tx = tx.Or(
-				"LOWER(first_name) LIKE ? OR LOWER(surname) LIKE ? OR LOWER(company) LIKE ? OR EXISTS (SELECT 1 FROM phones WHERE contact_id = contacts.id AND number LIKE ?)",
-				like, like, like, like,
-			)
-		}
-		return tx
-	})
+	// Build OR conditions manually
+	var orClauses []string
+	var params []interface{}
+
+	for _, part := range queryParts {
+		like := "%" + part + "%"
+		orClauses = append(orClauses,
+			"LOWER(first_name) LIKE ? OR LOWER(surname) LIKE ? OR LOWER(company) LIKE ? OR EXISTS (SELECT 1 FROM phones WHERE contact_id = contacts.id AND number LIKE ?)",
+		)
+		params = append(params, like, like, like, like)
+	}
+
+	if len(orClauses) > 0 {
+		// Wrap OR clauses in parentheses and join with OR
+		dbQuery = dbQuery.Where("("+strings.Join(orClauses, " OR ")+")", params...)
+	}
 
 	var contacts []models.Contact
 	if err := dbQuery.Find(&contacts).Error; err != nil {
