@@ -84,6 +84,56 @@ This allows easy recovery and archiving.
 
 ---
 
+## Migrations
+
+Manual, versioned SQL migrations for Go Phonebook.
+
+To run migrations:
+
+```bash
+# migrations run automatically on server start
+go run main.go
+```
+
+### Adding a Migration
+
+Create a new file in migrations/:
+
+```go
+20250821120000-create-example.go
+```
+
+```go
+func DbUp0004(tx *sql.Tx) error {
+    _, err := tx.Exec(`
+        CREATE TABLE IF NOT EXISTS example (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL
+        );
+    `)
+    return err
+}
+
+func DbDown0004(tx *sql.Tx) error {
+    _, err := tx.Exec(`DROP TABLE IF EXISTS example;`)
+    return err
+}
+```
+
+```go
+var AllMigrations = []Migration{
+...,
+{
+ID:   "20250821120000-create-example",
+Up:   DbUp0004,
+Down: DbDown0004,
+},
+}
+```
+The migration will now be applied automatically the next time the server starts, or when you run migrations.Migrate(db) manually.
+
+---
+
 ## Swagger Docs
 Generated using `swaggo/swag`.
 
