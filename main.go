@@ -31,8 +31,13 @@ func main() {
 		slog.Warn("No .env file found, using environment variables")
 	}
 
+	if err := dbsql.RunMigrations(); err != nil {
+		slog.Error("Failed to run migrations", "error", err)
+		return
+	}
+
 	// Initialize DB
-	db, err := dbsql.ConnectDB()
+	db, err := dbsql.ConnectGorm()
 	if err != nil {
 		slog.Error("Failed to connect to DB", "error", err)
 		return
